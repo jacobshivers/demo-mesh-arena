@@ -1,37 +1,42 @@
-apiVersion: kafka.strimzi.io/v1beta1
+---
+apiVersion: kafka.strimzi.io/v1beta2
 kind: Kafka
 metadata:
   name: messaging
 spec:
   kafka:
+    version: 3.0.0
+    replicas: 1
+    listeners:
+    - name: plain
+      port: 9092
+      type: internal
+      tls: false
+    - name: tls
+      port: 9093
+      type: internal
+      tls: true
+    config:
+      offsets.topic.replication.factor: 1
+      transaction.state.log.replication.factor: 1
+      transaction.state.log.min.isr: 1
+      log.message.format.version: 2.5
+    storage:
+      volumes:
+      - type: persistent-claim
+        size: 10Gi
+        id: 0
+      type: jbod
     template:
       pod:
         metadata:
           annotations:
             sidecar.istio.io/statsInclusionPrefixes: cluster_manager,listener_manager,broker
-    version: 2.5.0
-    replicas: 1
-    listeners:
-      plain: {}
-      tls: {}
-    config:
-      offsets.topic.replication.factor: 1
-      transaction.state.log.replication.factor: 1
-      transaction.state.log.min.isr: 1
-      log.message.format.version: "2.5"
-    storage:
-      type: jbod
-      volumes:
-      - id: 0
-        type: persistent-claim
-        size: 10Gi
-        deleteClaim: false
   zookeeper:
     replicas: 1
     storage:
       type: persistent-claim
       size: 10Gi
-      deleteClaim: false
   entityOperator:
     topicOperator: {}
     userOperator: {}
